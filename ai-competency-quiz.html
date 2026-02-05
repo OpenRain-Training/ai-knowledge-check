@@ -1,0 +1,831 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Competency Quiz</title>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=Work+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #0a0e27;
+            --accent: #00d9ff;
+            --secondary: #7b2cbf;
+            --bg: #fafbfc;
+            --card: #ffffff;
+            --text: #1a1a1a;
+            --text-light: #6b7280;
+            --success: #10b981;
+            --warning: #f59e0b;
+            --error: #ef4444;
+            --border: #e5e7eb;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Work Sans', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 2rem 1rem;
+            color: var(--text);
+            position: relative;
+            overflow-x: hidden;
+        }
+
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: 
+                radial-gradient(circle at 20% 50%, rgba(0, 217, 255, 0.1) 0%, transparent 50%),
+                radial-gradient(circle at 80% 80%, rgba(123, 44, 191, 0.1) 0%, transparent 50%);
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            position: relative;
+            z-index: 1;
+        }
+
+        .quiz-card {
+            background: var(--card);
+            border-radius: 24px;
+            padding: 3rem;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.15);
+            animation: slideUp 0.6s ease-out;
+        }
+
+        @keyframes slideUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        h1 {
+            font-family: 'Playfair Display', serif;
+            font-size: 3rem;
+            font-weight: 900;
+            color: var(--primary);
+            margin-bottom: 0.5rem;
+            line-height: 1.1;
+        }
+
+        .subtitle {
+            font-size: 1.125rem;
+            color: var(--text-light);
+            margin-bottom: 2rem;
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 8px;
+            background: var(--border);
+            border-radius: 100px;
+            margin-bottom: 2rem;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, var(--accent), var(--secondary));
+            border-radius: 100px;
+            transition: width 0.4s ease;
+        }
+
+        .question-number {
+            font-size: 0.875rem;
+            font-weight: 600;
+            color: var(--secondary);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 1rem;
+        }
+
+        .question-text {
+            font-size: 1.5rem;
+            font-weight: 600;
+            color: var(--primary);
+            margin-bottom: 2rem;
+            line-height: 1.4;
+        }
+
+        .options {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+
+        .option {
+            background: var(--bg);
+            border: 2px solid var(--border);
+            border-radius: 16px;
+            padding: 1.25rem 1.5rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .option::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(0, 217, 255, 0.1), transparent);
+            transition: left 0.5s ease;
+        }
+
+        .option:hover {
+            border-color: var(--accent);
+            transform: translateX(4px);
+            box-shadow: 0 4px 12px rgba(0, 217, 255, 0.2);
+        }
+
+        .option:hover::before {
+            left: 100%;
+        }
+
+        .option.selected {
+            background: linear-gradient(135deg, rgba(0, 217, 255, 0.1), rgba(123, 44, 191, 0.1));
+            border-color: var(--secondary);
+            box-shadow: 0 4px 16px rgba(123, 44, 191, 0.2);
+        }
+
+        .option-label {
+            font-weight: 500;
+            color: var(--text);
+        }
+
+        .btn {
+            background: linear-gradient(135deg, var(--secondary), var(--accent));
+            color: white;
+            border: none;
+            padding: 1rem 2.5rem;
+            border-radius: 12px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-top: 2rem;
+            box-shadow: 0 4px 16px rgba(123, 44, 191, 0.3);
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 24px rgba(123, 44, 191, 0.4);
+        }
+
+        .btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .results {
+            text-align: center;
+            animation: slideUp 0.6s ease-out;
+        }
+
+        .results h2 {
+            font-family: 'Playfair Display', serif;
+            font-size: 2.5rem;
+            font-weight: 900;
+            color: var(--primary);
+            margin-bottom: 1rem;
+        }
+
+        .score-circle {
+            width: 200px;
+            height: 200px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, var(--accent), var(--secondary));
+            margin: 2rem auto;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 20px 40px rgba(123, 44, 191, 0.3);
+            animation: pulse 2s ease-in-out infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% {
+                transform: scale(1);
+            }
+            50% {
+                transform: scale(1.05);
+            }
+        }
+
+        .score-circle-inner {
+            width: 180px;
+            height: 180px;
+            border-radius: 50%;
+            background: white;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .score-number {
+            font-size: 3rem;
+            font-weight: 900;
+            font-family: 'Playfair Display', serif;
+            background: linear-gradient(135deg, var(--secondary), var(--accent));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .score-label {
+            font-size: 0.875rem;
+            color: var(--text-light);
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .level-badge {
+            display: inline-block;
+            padding: 0.75rem 2rem;
+            border-radius: 100px;
+            font-size: 1.25rem;
+            font-weight: 700;
+            margin: 1rem 0 2rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .level-novice {
+            background: linear-gradient(135deg, #fbbf24, #f59e0b);
+            color: white;
+        }
+
+        .level-competent {
+            background: linear-gradient(135deg, #60a5fa, #3b82f6);
+            color: white;
+        }
+
+        .level-pro {
+            background: linear-gradient(135deg, #34d399, #10b981);
+            color: white;
+        }
+
+        .results-description {
+            font-size: 1.125rem;
+            color: var(--text-light);
+            line-height: 1.7;
+            margin-bottom: 1.5rem;
+        }
+
+        .breakdown {
+            background: var(--bg);
+            border-radius: 16px;
+            padding: 2rem;
+            margin: 2rem 0;
+            text-align: left;
+        }
+
+        .breakdown h3 {
+            font-family: 'Playfair Display', serif;
+            font-size: 1.5rem;
+            color: var(--primary);
+            margin-bottom: 1.5rem;
+        }
+
+        .review-item {
+            background: white;
+            border: 2px solid var(--border);
+            border-radius: 12px;
+            padding: 1.5rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .review-item:last-child {
+            margin-bottom: 0;
+        }
+
+        .review-question {
+            font-size: 1rem;
+            color: var(--primary);
+            margin-bottom: 1rem;
+            line-height: 1.5;
+        }
+
+        .review-answer {
+            padding: 0.75rem 1rem;
+            border-radius: 8px;
+            margin-bottom: 0.5rem;
+            font-size: 0.95rem;
+        }
+
+        .review-answer:last-child {
+            margin-bottom: 0;
+        }
+
+        .review-answer.incorrect {
+            background: rgba(239, 68, 68, 0.1);
+            border-left: 4px solid var(--error);
+        }
+
+        .review-answer.correct {
+            background: rgba(16, 185, 129, 0.1);
+            border-left: 4px solid var(--success);
+        }
+
+        .review-label {
+            font-weight: 600;
+            font-size: 0.875rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            display: block;
+            margin-bottom: 0.25rem;
+        }
+
+        .review-answer.incorrect .review-label {
+            color: var(--error);
+        }
+
+        .review-answer.correct .review-label {
+            color: var(--success);
+        }
+
+        .restart-btn {
+            margin-top: 1rem;
+        }
+
+        .intro-screen {
+            text-align: center;
+            animation: slideUp 0.6s ease-out;
+        }
+
+        .intro-screen h1 {
+            margin-bottom: 1rem;
+        }
+
+        .intro-description {
+            font-size: 1.125rem;
+            color: var(--text-light);
+            line-height: 1.7;
+            margin-bottom: 2rem;
+            max-width: 600px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        .start-btn {
+            font-size: 1.125rem;
+            padding: 1.25rem 3rem;
+        }
+
+        @media (max-width: 768px) {
+            .quiz-card {
+                padding: 2rem 1.5rem;
+            }
+
+            h1 {
+                font-size: 2rem;
+            }
+
+            .question-text {
+                font-size: 1.25rem;
+            }
+
+            .score-circle {
+                width: 160px;
+                height: 160px;
+            }
+
+            .score-circle-inner {
+                width: 144px;
+                height: 144px;
+            }
+
+            .score-number {
+                font-size: 2.5rem;
+            }
+        }
+
+        .hidden {
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="quiz-card">
+            <!-- Intro Screen -->
+            <div id="intro" class="intro-screen">
+                <h1>AI Competency Quiz</h1>
+                <p class="intro-description">
+                    Test your understanding of AI tools in the workplace. This quiz assesses your awareness, 
+                    judgement, and responsibility when working with AI systems. Answer 20 questions to 
+                    discover your AI competency level.
+                </p>
+                <button class="btn start-btn" onclick="startQuiz()">Start Quiz</button>
+            </div>
+
+            <!-- Quiz Screen -->
+            <div id="quiz" class="hidden">
+                <div class="progress-bar">
+                    <div class="progress-fill" id="progressBar"></div>
+                </div>
+                
+                <div class="question-number" id="questionNumber"></div>
+                <div class="question-text" id="questionText"></div>
+                
+                <div class="options" id="options"></div>
+                
+                <button class="btn" id="nextBtn" onclick="nextQuestion()" disabled>Next Question</button>
+            </div>
+
+            <!-- Results Screen -->
+            <div id="results" class="results hidden">
+                <h2>Your Results</h2>
+                
+                <div class="score-circle">
+                    <div class="score-circle-inner">
+                        <div class="score-number" id="scoreNumber"></div>
+                        <div class="score-label">Score</div>
+                    </div>
+                </div>
+                
+                <div id="levelBadge"></div>
+                <div class="results-description" id="resultsDescription"></div>
+                
+                <div class="breakdown">
+                    <div id="categoryBreakdown"></div>
+                </div>
+                
+                <button class="btn restart-btn" onclick="restartQuiz()">Take Quiz Again</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const quizData = [
+            {
+                category: "Understanding AI",
+                question: "What is AI actually doing when it generates an answer?",
+                options: [
+                    { text: "Retrieving verified facts from its knowledge database", points: 0, correct: false },
+                    { text: "Predicting statistically likely text based on patterns in training data", points: 1, correct: true },
+                    { text: "Reasoning through problems using logical inference", points: 0, correct: false },
+                    { text: "Connecting to external sources to validate information", points: 0, correct: false }
+                ]
+            },
+            {
+                category: "Understanding AI",
+                question: "Why might AI confidently provide incorrect information?",
+                options: [
+                    { text: "It deliberately tries to mislead users", points: 0, correct: false },
+                    { text: "It generates plausible-sounding text without verifying accuracy", points: 1, correct: true },
+                    { text: "Its training data was intentionally corrupted", points: 0, correct: false },
+                    { text: "It becomes confused when processing complex questions", points: 0, correct: false }
+                ]
+            },
+            {
+                category: "Task Selection",
+                question: "Which task is MOST appropriate for AI assistance?",
+                options: [
+                    { text: "Generating ideas for marketing campaign themes", points: 1, correct: true },
+                    { text: "Making final budget allocation decisions", points: 0, correct: false },
+                    { text: "Conducting employee performance reviews", points: 0, correct: false },
+                    { text: "Determining legal liability in a dispute", points: 0, correct: false }
+                ]
+            },
+            {
+                category: "Task Selection",
+                question: "When should you avoid using AI for a task?",
+                options: [
+                    { text: "When the output needs to be reviewed by a human", points: 0, correct: false },
+                    { text: "When errors could have significant consequences and verification is difficult", points: 1, correct: true },
+                    { text: "When the task is repetitive and time-consuming", points: 0, correct: false },
+                    { text: "When you need creative suggestions or alternatives", points: 0, correct: false }
+                ]
+            },
+            {
+                category: "Clear Instructions",
+                question: "What makes a prompt effective?",
+                options: [
+                    { text: "Being as brief as possible to save time", points: 0, correct: false },
+                    { text: "Using technical jargon to sound professional", points: 0, correct: false },
+                    { text: "Providing context, constraints, and desired format", points: 1, correct: true },
+                    { text: "Asking the AI to guarantee accuracy", points: 0, correct: false }
+                ]
+            },
+            {
+                category: "Clear Instructions",
+                question: "You receive an unclear output from AI. What's the best next step?",
+                options: [
+                    { text: "Accept it and try to interpret what it means", points: 0, correct: false },
+                    { text: "Refine your prompt with more specific requirements", points: 1, correct: true },
+                    { text: "Switch to a different AI tool", points: 0, correct: false },
+                    { text: "Simplify your request significantly", points: 0, correct: false }
+                ]
+            },
+            {
+                category: "Accuracy & Reliability",
+                question: "AI provides a specific statistic in its response. What should you do?",
+                options: [
+                    { text: "Use it if it aligns with your expectations", points: 0, correct: false },
+                    { text: "Verify it through independent, authoritative sources", points: 1, correct: true },
+                    { text: "Round it to make it more credible", points: 0, correct: false },
+                    { text: "Ask the AI if it's certain about the number", points: 0, correct: false }
+                ]
+            },
+            {
+                category: "Accuracy & Reliability",
+                question: "How should you treat AI-generated citations or references?",
+                options: [
+                    { text: "Trust them if they look professionally formatted", points: 0, correct: false },
+                    { text: "Assume they're accurate since AI pulled them from training data", points: 0, correct: false },
+                    { text: "Verify each citation exists and says what AI claims", points: 1, correct: true },
+                    { text: "Only check them if you plan to publish the work", points: 0, correct: false }
+                ]
+            },
+            {
+                category: "Risk Management",
+                question: "You're using AI to draft a client proposal. What's the primary risk?",
+                options: [
+                    { text: "The client might detect it was AI-generated", points: 0, correct: false },
+                    { text: "Inaccurate claims or commitments that could create liability", points: 1, correct: true },
+                    { text: "The proposal might lack creativity", points: 0, correct: false },
+                    { text: "It could take longer than writing it yourself", points: 0, correct: false }
+                ]
+            },
+            {
+                category: "Risk Management",
+                question: "What determines how carefully you should review AI output?",
+                options: [
+                    { text: "How long the output is", points: 0, correct: false },
+                    { text: "How confident the AI seemed in its response", points: 0, correct: false },
+                    { text: "The potential impact if the information is wrong", points: 1, correct: true },
+                    { text: "Whether the output matches your expectations", points: 0, correct: false }
+                ]
+            },
+            {
+                category: "Workplace Safety",
+                question: "Your company has no explicit AI policy. What should guide your use?",
+                options: [
+                    { text: "Common sense and general productivity principles", points: 0, correct: false },
+                    { text: "Existing data protection, confidentiality, and security policies", points: 1, correct: true },
+                    { text: "What your colleagues are doing with AI", points: 0, correct: false },
+                    { text: "The AI tool's terms of service", points: 0, correct: false }
+                ]
+            },
+            {
+                category: "Workplace Safety",
+                question: "Which type of information requires the most caution with AI tools?",
+                options: [
+                    { text: "Publicly available industry information", points: 0, correct: false },
+                    { text: "Your personal work preferences and style", points: 0, correct: false },
+                    { text: "Personal data that could identify specific individuals", points: 1, correct: true },
+                    { text: "General templates for common business documents", points: 0, correct: false }
+                ]
+            },
+            {
+                category: "Human Oversight",
+                question: "When is human oversight most critical?",
+                options: [
+                    { text: "For any task where judgement, ethics, or accountability matter", points: 1, correct: true },
+                    { text: "Only when regulations explicitly require it", points: 0, correct: false },
+                    { text: "Primarily for customer-facing communications", points: 0, correct: false },
+                    { text: "When the AI output seems unusual or unexpected", points: 0, correct: false }
+                ]
+            },
+            {
+                category: "Human Oversight",
+                question: "AI drafts a response to a sensitive customer issue. What should you focus on?",
+                options: [
+                    { text: "Whether the grammar and spelling are correct", points: 0, correct: false },
+                    { text: "Whether the tone, empathy, and commitments are appropriate", points: 1, correct: true },
+                    { text: "Whether it's shorter than you would have written", points: 0, correct: false },
+                    { text: "Whether it uses professional business language", points: 0, correct: false }
+                ]
+            },
+            {
+                category: "Productivity Balance",
+                question: "What's a key risk of over-relying on AI for your core work tasks?",
+                options: [
+                    { text: "Your organization might eliminate your role", points: 0, correct: false },
+                    { text: "Gradual skill atrophy and reduced critical thinking", points: 1, correct: true },
+                    { text: "Colleagues might perceive you as less capable", points: 0, correct: false },
+                    { text: "The AI tool might become unavailable", points: 0, correct: false }
+                ]
+            },
+            {
+                category: "Productivity Balance",
+                question: "How should AI ideally fit into your workflow?",
+                options: [
+                    { text: "As a replacement for tasks you find tedious", points: 0, correct: false },
+                    { text: "As a tool that augments your expertise while you retain ownership", points: 1, correct: true },
+                    { text: "As a first draft generator that you lightly edit", points: 0, correct: false },
+                    { text: "As a way to complete work faster with minimal review", points: 0, correct: false }
+                ]
+            },
+            {
+                category: "Real Scenarios",
+                question: "A colleague shares an impressive AI output. What's the best practice before using similar prompts?",
+                options: [
+                    { text: "Copy their approach directly since it worked for them", points: 0, correct: false },
+                    { text: "Understand the context and adapt it appropriately to your needs", points: 1, correct: true },
+                    { text: "Test it on low-stakes tasks first", points: 0, correct: false },
+                    { text: "Ask the AI if the approach is suitable for your situation", points: 0, correct: false }
+                ]
+            },
+            {
+                category: "Real Scenarios",
+                question: "You're asked to analyze data that might contain customer information. What's your first step?",
+                options: [
+                    { text: "Remove obvious personal identifiers before using AI", points: 0, correct: false },
+                    { text: "Confirm what data you can use and whether AI tools are permitted", points: 1, correct: true },
+                    { text: "Use AI but keep the data anonymous in your prompts", points: 0, correct: false },
+                    { text: "Proceed if the data is already in your possession", points: 0, correct: false }
+                ]
+            },
+            {
+                category: "Sustainable Habits",
+                question: "What's the most important habit when using AI regularly?",
+                options: [
+                    { text: "Documenting which tasks you've automated", points: 0, correct: false },
+                    { text: "Consistently verifying outputs match your quality standards", points: 1, correct: true },
+                    { text: "Exploring new AI tools as they become available", points: 0, correct: false },
+                    { text: "Gradually increasing the complexity of tasks you delegate", points: 0, correct: false }
+                ]
+            },
+            {
+                category: "Sustainable Habits",
+                question: "How should you approach learning about AI tools in your workplace?",
+                options: [
+                    { text: "Wait for formal training from your organization", points: 0, correct: false },
+                    { text: "Experiment independently and share what works", points: 0, correct: false },
+                    { text: "Balance self-directed learning with awareness of policies and guidelines", points: 1, correct: true },
+                    { text: "Follow what industry leaders and influencers recommend", points: 0, correct: false }
+                ]
+            }
+        ];
+
+        let currentQuestion = 0;
+        let score = 0;
+        let userAnswers = [];
+        let selectedAnswer = null;
+
+        function startQuiz() {
+            document.getElementById('intro').classList.add('hidden');
+            document.getElementById('quiz').classList.remove('hidden');
+            loadQuestion();
+        }
+
+        function loadQuestion() {
+            const question = quizData[currentQuestion];
+            const progress = ((currentQuestion + 1) / quizData.length) * 100;
+            
+            document.getElementById('progressBar').style.width = progress + '%';
+            document.getElementById('questionNumber').textContent = `Question ${currentQuestion + 1} of ${quizData.length}`;
+            document.getElementById('questionText').textContent = question.question;
+            
+            const optionsContainer = document.getElementById('options');
+            optionsContainer.innerHTML = '';
+            
+            question.options.forEach((option, index) => {
+                const optionDiv = document.createElement('div');
+                optionDiv.className = 'option';
+                optionDiv.innerHTML = `<div class="option-label">${option.text}</div>`;
+                optionDiv.onclick = () => selectOption(index);
+                optionsContainer.appendChild(optionDiv);
+            });
+            
+            selectedAnswer = null;
+            document.getElementById('nextBtn').disabled = true;
+        }
+
+        function selectOption(index) {
+            // Remove previous selection
+            document.querySelectorAll('.option').forEach(opt => {
+                opt.classList.remove('selected');
+            });
+            
+            // Add selection to clicked option
+            document.querySelectorAll('.option')[index].classList.add('selected');
+            
+            selectedAnswer = index;
+            document.getElementById('nextBtn').disabled = false;
+        }
+
+        function nextQuestion() {
+            if (selectedAnswer === null) return;
+            
+            const question = quizData[currentQuestion];
+            const isCorrect = question.options[selectedAnswer].correct;
+            
+            // Store user's answer
+            userAnswers.push({
+                questionIndex: currentQuestion,
+                question: question.question,
+                userAnswer: question.options[selectedAnswer].text,
+                correctAnswer: question.options.find(opt => opt.correct).text,
+                isCorrect: isCorrect
+            });
+            
+            if (isCorrect) {
+                score++;
+            }
+            
+            currentQuestion++;
+            
+            if (currentQuestion < quizData.length) {
+                loadQuestion();
+            } else {
+                showResults();
+            }
+        }
+
+        function showResults() {
+            document.getElementById('quiz').classList.add('hidden');
+            document.getElementById('results').classList.remove('hidden');
+            
+            const percentage = Math.round((score / quizData.length) * 100);
+            
+            document.getElementById('scoreNumber').textContent = percentage + '%';
+            
+            let level, description, badgeClass;
+            
+            if (percentage >= 80) {
+                level = 'AI Pro';
+                badgeClass = 'level-pro';
+                description = 'Outstanding! You demonstrate strong awareness, sound judgement, and responsible practices when working with AI. You understand both the capabilities and limitations of AI tools, and you know how to use them effectively while maintaining appropriate oversight and ethical standards.';
+            } else if (percentage >= 60) {
+                level = 'AI Competent';
+                badgeClass = 'level-competent';
+                description = 'Well done! You have a solid understanding of AI tools and their appropriate use in the workplace. You recognize the importance of human oversight and verification. With continued practice and attention to emerging best practices, you\'re on track to become an AI power user.';
+            } else {
+                level = 'AI Novice';
+                badgeClass = 'level-novice';
+                description = 'You\'re at the beginning of your AI journey. This quiz has highlighted some important concepts about AI safety, accuracy, and responsible use. Consider seeking additional training on AI tools in the workplace, and always prioritize verification and human oversight when using AI-generated content.';
+            }
+            
+            document.getElementById('levelBadge').innerHTML = `<span class="level-badge ${badgeClass}">${level}</span>`;
+            document.getElementById('resultsDescription').textContent = description;
+            
+            // Show incorrect answers
+            const incorrectAnswers = userAnswers.filter(answer => !answer.isCorrect);
+            const breakdownContainer = document.getElementById('categoryBreakdown');
+            breakdownContainer.innerHTML = '';
+            
+            if (incorrectAnswers.length === 0) {
+                breakdownContainer.innerHTML = '<p style="text-align: center; color: var(--success); font-weight: 600; font-size: 1.125rem;">Perfect score! You answered all questions correctly! 🎉</p>';
+            } else {
+                const reviewTitle = document.createElement('h3');
+                reviewTitle.textContent = `Review Your Answers (${incorrectAnswers.length} incorrect)`;
+                reviewTitle.style.marginBottom = '1.5rem';
+                breakdownContainer.appendChild(reviewTitle);
+                
+                incorrectAnswers.forEach((answer, index) => {
+                    const reviewItem = document.createElement('div');
+                    reviewItem.className = 'review-item';
+                    reviewItem.innerHTML = `
+                        <div class="review-question">
+                            <strong>Question ${answer.questionIndex + 1}:</strong> ${answer.question}
+                        </div>
+                        <div class="review-answer incorrect">
+                            <span class="review-label">Your answer:</span> ${answer.userAnswer}
+                        </div>
+                        <div class="review-answer correct">
+                            <span class="review-label">Correct answer:</span> ${answer.correctAnswer}
+                        </div>
+                    `;
+                    breakdownContainer.appendChild(reviewItem);
+                });
+            }
+        }
+
+        function restartQuiz() {
+            currentQuestion = 0;
+            score = 0;
+            userAnswers = [];
+            selectedAnswer = null;
+            
+            document.getElementById('results').classList.add('hidden');
+            document.getElementById('intro').classList.remove('hidden');
+        }
+    </script>
+</body>
+</html>
